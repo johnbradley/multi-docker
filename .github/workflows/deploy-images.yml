@@ -1,41 +1,22 @@
-name: Create and publish a Docker image
-
-on:
-  push:
-    branches:
-      - main
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
+on: push
 jobs:
-  getcontainers:
+  build-matrix:
     runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.changed-files.outputs.all_changed_files }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v19
-        with:
-          files: |
-            **/Dockerfile
-
-  build-and-push-image:
-    needs: getcontainers 
+      - id: set-matrix
+        run: echo "::set-output name=version_matrix::$(curl https://endoflife.date/api/nodejs.json | jq -c '[.[] | select(.eol > (now | strftime("%Y-%m-%d"))) | .cycle]')"
+    outputs:
+      version_matrix: ${{ steps.set-matrix.outputs.version_matrix }}
+  ci:
+    needs: build-matrix
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     strategy:
       matrix:
-        dockerfile: ${{ fromJson(needs.getcontainers.outputs.matrix) }}
-
+        version: ${{ fromJson(needs.build-matrix.outputs.version_matrix) }}
     steps:
-      - run: |
-          echo "${{ matrix.dockerfile }}"
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.version }}
+      - run: npm ci
+      - run: npm test
