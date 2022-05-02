@@ -10,49 +10,35 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push-image:
+  getcontainers:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
+    outputs:
+      matrix: ${{ steps.matrix.outputs.value }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v19
         with:
           files: |
             **/Dockerfile
-
-      - name: Log in to the Container registry
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-
-      - name: List all changed files
+      - id: matrix
         run: |
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            echo "$file was changed"
-          done
+          echo ${{ steps.changed-files.outputs.all_changed_files }}
 
-#      - name: Extract metadata (tags, labels) for Docker
-#        id: meta
-#        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-#        with:
-#          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-minimal
+  build-and-push-image:
+    needs: getcontainers 
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        package: ${{ fromJson(needs.getcontainers.outputs.matrix) }}
 
-#      - name: Build and push Docker image
-#        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
-#        with:
-#          context: .
-#          push: true
-#          tags: ${{ steps.meta.outputs.tags }}
-#          labels: ${{ steps.meta.outputs.labels }}
+    steps:
+      - run: |
+          echo "${{ matrix.value }}"
