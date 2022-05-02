@@ -34,7 +34,7 @@ jobs:
       packages: write
     strategy:
       matrix:
-        dockerfile: ${{ fromJson(needs.getcontainers.outputs.version_matrix) }}
+        dockerfile: ${{ fromJson(needs.getcontainers.outputs.matrix) }}
 
     steps:
       - run: |
