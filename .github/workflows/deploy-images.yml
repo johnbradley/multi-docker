@@ -30,10 +30,5 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-minimal
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
-        with:
-          context: python/3.8.13/
-          push: true
-          tags: ghcr.io/johnbradley/python:3.8.13
-          labels: ${{ steps.meta.outputs.labels }}
+      - name: test docker
+        run: docker images 
