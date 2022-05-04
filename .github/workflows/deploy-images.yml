@@ -2,16 +2,19 @@ on:
   push:
     branches:
       - main
-
 env:
   REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-images:
+  build-and-push-image:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
     steps:
-      -
-        name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Log in to the Container registry
@@ -21,9 +24,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
-        uses: docker/build-push-action@v2
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
-          context: python/3.8.13/.
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-minimal
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: .
           push: true
-          tags: ${{ env.REGISTRY }}/johnbradley/python:3.8.13
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
