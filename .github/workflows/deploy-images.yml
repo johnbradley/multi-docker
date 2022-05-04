@@ -15,4 +15,4 @@ jobs:
         with:
           context: python/3.8.13/.
           push: true
-          tags: johnbradley/python:3.8.13
+          tags: ghcr.io/johnbradley/python:3.8.13
