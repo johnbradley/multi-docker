@@ -31,4 +31,4 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-minimal
 
       - name: test docker
-        run: docker images 
+        run: ./build.sh one two.
