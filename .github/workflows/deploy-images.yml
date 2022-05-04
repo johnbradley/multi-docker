@@ -1,25 +1,14 @@
-on: push
+on:
+  push:
+    branches:
+      - main
 jobs:
-  build-matrix:
+  build-images:
     runs-on: ubuntu-latest
     steps:
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v19
+      - name: Build and push
+        uses: docker/build-push-action@v2
         with:
-          files: |
-            **/Dockerfile
-    outputs:
-      version_matrix: ${{ toJSON((steps.changed-files.outputs.all_changed_files) }}
-  ci:
-    needs: build-matrix
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        version: ${{ fromJson(needs.build-matrix.outputs.version_matrix) }}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          node-version: ${{ matrix.version }}
-      - run: echo ${{ matrix.version }}
-      - run: npm test
+          context: python/3.8.13/.
+          push: true
+          tags: johnbradley/python:3.8.13
