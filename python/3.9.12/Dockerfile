@@ -1,3 +1,2 @@
 FROM python:3.9.12
-# todo5
 RUN pip install requests
