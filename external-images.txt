@@ -1,0 +1,1 @@
+docker://quay.io/biocontainers/blast:2.12.0--hf3cf87c_4
